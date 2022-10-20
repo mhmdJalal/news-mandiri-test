@@ -1,18 +1,32 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-android")
+    id("kotlin-parcelize")
+    id("kotlin-kapt")
 }
 
+val apikeyPropertiesFile by lazy { rootProject.file("apikey.properties") }
+val apikeyProperties by lazy { Properties() }
+apikeyProperties.load(FileInputStream(apikeyPropertiesFile))
+
 android {
-    namespace = "com.mhmdjalal.newsapp"
-    compileSdk = 32
+    namespace = AppDetail.applicationId
+    compileSdk = AppDetail.compileSdkVersion
 
     defaultConfig {
-        applicationId = "com.mhmdjalal.newsapp"
-        minSdk = 21
-        targetSdk = 32
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = AppDetail.applicationId
+        minSdk = AppDetail.minSdkVersion
+        targetSdk = AppDetail.targetSdkVersion
+        versionCode = AppDetail.versionCode
+        versionName = AppDetail.versionName
+
+        buildConfigField("String", "BASE_URL", "https://newsapi.org/v2/")
+
+        buildConfigField("String", "NEWS_API_KEY", apikeyProperties.getProperty("NEWS_API_KEY"))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,11 +54,45 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.5.1")
-    implementation("com.google.android.material:material:1.6.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    implementation(Deps.kotlin)
+    implementation(Deps.kotlinReflect)
+    implementation(Deps.appCompat)
+    implementation(Deps.materialDesign)
+    implementation(Deps.constraintLayout)
+    implementation(Deps.legacySupport)
+
+    implementation(Deps.splitties)
+
+    // GLIDE IMAGE COMPILER
+    implementation(Deps.glide)
+    kapt(Kapt.glide)
+    implementation(Deps.glideOkhttp) {
+        isTransitive = true
+    }
+
+    // RETROFIT
+    implementation(platform(Deps.SquareUp.okhttpBOM))
+    implementation(Deps.SquareUp.okhttp3)
+    implementation(Deps.SquareUp.okhttp3Logging)
+    implementation(Deps.SquareUp.retrofit)
+    implementation(Deps.SquareUp.retrofitMoshi)
+
+    // KOIN
+    implementation(Deps.Koin.core)
+    implementation(Deps.Koin.android)
+
+    // LIFECYCLE
+    implementation(Deps.lifecycleLiveData)
+    implementation(Deps.lifecycleViewModel)
+    implementation(Deps.lifecycleCommon)
+    testImplementation(Deps.archCoreTesting)
+
+    // KOTLIN COROUTINES
+    implementation(Deps.coroutineCore)
+    implementation(Deps.coroutineAndroid)
+
+    // TESTING
+    testImplementation(Deps.Testing.jUnit)
+    androidTestImplementation(Deps.Testing.extJUnit)
+    androidTestImplementation(Deps.Testing.espresso)
 }
