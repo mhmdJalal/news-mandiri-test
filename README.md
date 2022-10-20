@@ -3,6 +3,7 @@
 Create a mobile native application to show news using API from https://newsapi.org
 User stories:
 1. Create a screen to display the list of news categories.
+   business, entertainment, general, health, science, sports, technology
 2. Show news sources when user click one of the news category.
 3. Show news articles when user click one of the news source.
 4. Show the article detail on web view when user click one of the article.

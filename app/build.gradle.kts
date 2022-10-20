@@ -24,7 +24,7 @@ android {
         versionCode = AppDetail.versionCode
         versionName = AppDetail.versionName
 
-        buildConfigField("String", "BASE_URL", "https://newsapi.org/v2/")
+        buildConfigField("String", "BASE_URL", "\"https://newsapi.org\"")
 
         buildConfigField("String", "NEWS_API_KEY", apikeyProperties.getProperty("NEWS_API_KEY"))
 
@@ -70,12 +70,13 @@ dependencies {
         isTransitive = true
     }
 
-    // RETROFIT
+    // SquareUp
     implementation(platform(Deps.SquareUp.okhttpBOM))
     implementation(Deps.SquareUp.okhttp3)
     implementation(Deps.SquareUp.okhttp3Logging)
     implementation(Deps.SquareUp.retrofit)
     implementation(Deps.SquareUp.retrofitMoshi)
+    implementation(Deps.SquareUp.moshi)
 
     // KOIN
     implementation(Deps.Koin.core)
