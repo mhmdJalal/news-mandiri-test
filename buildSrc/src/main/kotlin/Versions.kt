@@ -9,7 +9,8 @@ object Versions {
     const val gradlePlugin = "7.2.2"
     const val kotlin = "1.7.10"
     const val googleService = "4.3.13"
-    const val koinVersion = "3.2.0"
+    const val koinVersion = "3.2.2"
+    const val koinAndroidVersion = "3.2.3"
     const val firebase = "2.0.0"
     const val firebaseCrashlytics = "2.7.1"
     const val firebasePerformance = "1.4.1"
@@ -26,7 +27,7 @@ object Versions {
     const val navigationUi = "2.5.1"
 
     const val photoView = "2.3.0"
-    const val glide = "4.13.0"
+    const val glide = "4.14.2"
     const val pinTextField = "1.2.6"
     const val numericKeyboard = "1.2.0"
 
@@ -65,6 +66,7 @@ object Versions {
     const val skydovesTooltip = "1.4.5"
     const val dotsIndicator = "4.3"
     const val spinKit = "1.4.0"
+    const val prettyTime = "5.0.4.Final"
 
     const val jUnit = "4.13.2"
     const val extJUnit = "1.1.3"

@@ -1,102 +1,87 @@
 package com.mhmdjalal.newsapp.network
 
-import android.util.Log
+import com.mhmdjalal.newsapp.utils.ErrorUtils
 import com.squareup.moshi.JsonDataException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
 import retrofit2.Response
 import java.net.SocketTimeoutException
 
-enum class State {
+enum class ResourceState {
     SUCCESS,
     ERROR,
     LOADING
 }
 
-data class Resource<out T>(val state: State, val data: T?, val message: String?, val isLoading: Boolean) {
+data class Resource<out T>(val state: ResourceState, val data: T?, val message: String?, val showLoading: Boolean?) {
 
     companion object {
 
         fun <T> success(data: T?): Resource<T> {
-            return Resource(State.SUCCESS, data, null, false)
+            return Resource(ResourceState.SUCCESS, data, null, null)
         }
 
         fun <T> error(msg: String?, data: T? = null): Resource<T> {
-            return Resource(State.ERROR, data, msg, false)
+            return Resource(ResourceState.ERROR, data, msg, null)
         }
 
-        fun <T> loading(isLoading: Boolean = false): Resource<T> {
-            return Resource(State.LOADING, null, null, isLoading)
+        fun <T> loading(showLoading: Boolean): Resource<T> {
+            return Resource(ResourceState.LOADING, null, null, showLoading)
         }
 
     }
 
 }
 
-
-fun <T> request(coroutineScope: CoroutineScope, response: suspend() -> Response<T>, results: (Resource<T>) -> Unit) {
+suspend fun <T> request(response: suspend () -> Response<T>): Flow<Resource<T>> = flow {
     try {
-        coroutineScope.launch {
-            results(Resource.loading(isLoading = true))
-            handlingResponse(response) {
-                results(it)
-            }
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        Log.e("REQUEST_FAILED", "not sending request")
-    }
-}
-
-suspend fun <T> handlingResponse(response: suspend() -> Response<T>, results: (Resource<T>) -> Unit) {
-    try {
-        val result = response()
-        if (result.isSuccessful) {
-            result.body()?.let { body ->
-                results(Resource.loading(isLoading = false))
-                results(Resource.success(body))
-            }
-        } else {
-            val errBody = result.errorBody()?.charStream()?.readText() ?: ""
-            var errMessage = errBody
-            try {
-                val resError = JSONObject(errBody)
-                if (resError.has("message")) {
-                    errMessage = resError.getString("message")
-                }
-
-                if (resError.has("meta")) {
-                    val metaError = JSONObject(resError.getString("meta"))
-                    errMessage = metaError.getString("message")
-                }
-            } catch (e: SocketTimeoutException) {
-                errMessage = "Waktu koneksi habis"
-            } catch (e: NoConnectivityException) {
-                errMessage = e.message
-            } catch (e: NoInternetException) {
-                errMessage = e.message
-            } catch (e: JsonDataException) {
-                e.printStackTrace()
-                errMessage = "Terjadi kesalahan saat menguraikan data"
-            } catch (throwable: Throwable) {
-                errMessage = "Ops, something went wrong!"
-            }
-            results(Resource.loading(isLoading = false))
-            results(Resource.error(errMessage))
-        }
-    } catch (e: SocketTimeoutException) {
-        results(Resource.error("Waktu koneksi habis"))
-    } catch (e: NoConnectivityException) {
-        results(Resource.error(e.message))
-    } catch (e: NoInternetException) {
-        results(Resource.error(e.message))
-    } catch (e: JsonDataException) {
-        e.printStackTrace()
-        results(Resource.loading(isLoading = false))
-        results(Resource.error("Terjadi kesalahan saat menguraikan data"))
+        emit(Resource.loading(showLoading = true))
+        handlingResponse(response)
+            .collect { emit(it) }
     } catch (throwable: Throwable) {
-        results(Resource.loading(isLoading = false))
-        results(Resource.error("Ops, something went wrong!"))
+        throwable.printStackTrace()
+        val messageError = ErrorUtils.getThrowableErrMsg(throwable)
+        emit(Resource.error(messageError))
+    } finally {
+        emit(Resource.loading(showLoading = false))
+    }
+}
+
+suspend fun <T> handlingResponse(response: suspend () -> Response<T>): Flow<Resource<T>> = flow {
+    var messageError: String? = null
+    val result = response()
+    if (result.isSuccessful) {
+        result.body()?.let { body ->
+            emit(Resource.success(body))
+        }
+    } else {
+
+        val errBody = result.errorBody()?.charStream()?.readText() ?: ""
+        try {
+            val resError = JSONObject(errBody)
+            if (resError.has("message")) {
+                messageError = resError.getString("message")
+            }
+
+            if (resError.has("meta")) {
+                val metaError = JSONObject(resError.getString("meta"))
+                messageError = metaError.getString("message")
+            }
+        } catch (e: SocketTimeoutException) {
+            messageError = "Waktu koneksi habis"
+        } catch (e: NoConnectivityException) {
+            messageError = e.message
+        } catch (e: NoInternetException) {
+            messageError = e.message
+        } catch (e: JsonDataException) {
+            e.printStackTrace()
+            messageError = "Terjadi kesalahan saat menguraikan data"
+        } catch (throwable: Throwable) {
+            throwable.printStackTrace()
+            messageError = ErrorUtils.getThrowableErrMsg(throwable)
+        } finally {
+            if (messageError != null) emit(Resource.error(messageError))
+        }
     }
 }

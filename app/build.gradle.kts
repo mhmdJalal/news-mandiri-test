@@ -26,7 +26,7 @@ android {
 
         buildConfigField("String", "BASE_URL", "\"https://newsapi.org\"")
 
-        buildConfigField("String", "NEWS_API_KEY", apikeyProperties.getProperty("NEWS_API_KEY"))
+        buildConfigField("String", "NEWS_API_KEY", "\"${apikeyProperties.getProperty("NEWS_API_KEY")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,8 +47,8 @@ android {
         jvmTarget = "11"
     }
 
-    viewBinding {
-        android.buildFeatures.viewBinding = true
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -62,6 +62,7 @@ dependencies {
     implementation(Deps.legacySupport)
 
     implementation(Deps.splitties)
+    implementation(Deps.prettyTime)
 
     // GLIDE IMAGE COMPILER
     implementation(Deps.glide)

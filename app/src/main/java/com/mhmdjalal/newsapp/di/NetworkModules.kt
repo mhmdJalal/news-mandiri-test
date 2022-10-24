@@ -19,33 +19,6 @@ import java.util.concurrent.TimeUnit
 val networkModules = module {
     val baseUrl = BuildConfig.BASE_URL
 
-    fun provideHttpClient(loggingInterceptor: HttpLoggingInterceptor, connectionInterceptor: NoConnectionInterceptor): OkHttpClient {
-        val client = OkHttpClient.Builder()
-
-        client.connectTimeout(60, TimeUnit.SECONDS)
-        client.writeTimeout(60, TimeUnit.SECONDS)
-        client.readTimeout(60, TimeUnit.SECONDS)
-        if (BuildConfig.DEBUG) client.addInterceptor(loggingInterceptor)
-        client.addInterceptor(connectionInterceptor)
-
-        return client.addInterceptor {
-            val original = it.request()
-            val requestBuilder = original.newBuilder()
-            requestBuilder.header("Content-Type", "application/json")
-            requestBuilder.header("Accept", "application/json")
-            requestBuilder.header("X-Api-Key", BuildConfig.NEWS_API_KEY)
-            val request = requestBuilder.method(original.method, original.body).build()
-            return@addInterceptor it.proceed(request)
-        }.build()
-    }
-
-    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
-        val logging = HttpLoggingInterceptor()
-        logging.level = HttpLoggingInterceptor.Level.BODY
-        return logging
-    }
-
-
     single { provideHttpLoggingInterceptor() }
     single { NoConnectionInterceptor(androidContext()) }
     single { provideHttpClient(get(), get()) }
@@ -56,6 +29,32 @@ val networkModules = module {
             baseUrl
         )
     }
+}
+
+fun provideHttpClient(loggingInterceptor: HttpLoggingInterceptor, connectionInterceptor: NoConnectionInterceptor): OkHttpClient {
+    val client = OkHttpClient.Builder()
+
+    client.connectTimeout(60, TimeUnit.SECONDS)
+    client.writeTimeout(60, TimeUnit.SECONDS)
+    client.readTimeout(60, TimeUnit.SECONDS)
+    if (BuildConfig.DEBUG) client.addInterceptor(loggingInterceptor)
+    client.addInterceptor(connectionInterceptor)
+
+    return client.addInterceptor {
+        val original = it.request()
+        val requestBuilder = original.newBuilder()
+        requestBuilder.header("Content-Type", "application/json")
+        requestBuilder.header("Accept", "application/json")
+        requestBuilder.header("X-Api-Key", BuildConfig.NEWS_API_KEY)
+        val request = requestBuilder.method(original.method, original.body).build()
+        return@addInterceptor it.proceed(request)
+    }.build()
+}
+
+fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
+    val logging = HttpLoggingInterceptor()
+    logging.level = HttpLoggingInterceptor.Level.BODY
+    return logging
 }
 
 /**

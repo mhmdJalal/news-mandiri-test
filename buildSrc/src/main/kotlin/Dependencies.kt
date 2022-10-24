@@ -68,6 +68,7 @@ object Deps {
     val skydovesTooltip by lazy { "com.github.skydoves:balloon:${Versions.skydovesTooltip}" }
     val dotsIndicator by lazy { "com.tbuonomo:dotsindicator:${Versions.dotsIndicator}" }
     val spinKit by lazy { "com.github.ybq:Android-SpinKit:${Versions.spinKit}" }
+    val prettyTime by lazy { "org.ocpsoft.prettytime:prettytime:${Versions.prettyTime}" }
 
     val timber by lazy { "com.jakewharton.timber:timber:${Versions.timber}" }
     val mockito by lazy { "org.mockito:mockito-core:${Versions.mockito}" }
@@ -76,7 +77,7 @@ object Deps {
 
     object Koin {
         val core by lazy { "io.insert-koin:koin-core:${Versions.koinVersion}" }
-        val android by lazy { "io.insert-koin:koin-android:${Versions.koinVersion}" }
+        val android by lazy { "io.insert-koin:koin-android:${Versions.koinAndroidVersion}" }
     }
 
     object Pusher {
