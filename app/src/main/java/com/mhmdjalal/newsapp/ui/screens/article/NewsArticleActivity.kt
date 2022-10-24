@@ -14,10 +14,10 @@ import com.mhmdjalal.newsapp.network.ResourceState
 import com.mhmdjalal.newsapp.ui.base.BaseActivity
 import com.mhmdjalal.newsapp.ui.screens.article.adapter.ArticleAdapter
 import com.mhmdjalal.newsapp.utils.ViewExt.disabled
-import com.mhmdjalal.newsapp.utils.ViewExt.enabled
 import com.mhmdjalal.newsapp.utils.ViewExt.gone
 import com.mhmdjalal.newsapp.utils.ViewExt.stopRefreshing
 import com.mhmdjalal.newsapp.utils.ViewExt.visible
+import com.mhmdjalal.newsapp.utils.handleResponseError
 import com.mhmdjalal.newsapp.utils.hideKeyboard
 import com.mhmdjalal.newsapp.utils.viewBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -39,6 +39,11 @@ class NewsArticleActivity : BaseActivity() {
     private var source: Source? = null
     private var keyword: String? = null
 
+    private val onClickRetry: (View) -> Unit = {
+        it.disabled(0.5f)
+        sync()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -57,13 +62,6 @@ class NewsArticleActivity : BaseActivity() {
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             sync(refreshData = true)
-        }
-
-        with(binding.layoutError) {
-            btnRetry.setOnClickListener {
-                it.disabled(0.5f)
-                sync()
-            }
         }
 
         sync()
@@ -140,18 +138,19 @@ class NewsArticleActivity : BaseActivity() {
         viewModel.articleResponse.observe(this) {
             when (it.state) {
                 ResourceState.SUCCESS -> {
-                    binding.recyclerArticle.visible()
-                    binding.layoutError.root.gone()
-
                     articleAdapter.setData(it.data?.articles ?: emptyList())
+
+                    if (articleAdapter.getData().isEmpty()) {
+                        binding.recyclerArticle.gone()
+                        binding.layoutError.handleResponseError("No data.", onClickRetry)
+                    } else {
+                        binding.recyclerArticle.visible()
+                        binding.layoutError.root.gone()
+                    }
                 }
                 ResourceState.ERROR -> {
                     binding.recyclerArticle.gone()
-                    with(binding.layoutError) {
-                        root.visible()
-                        btnRetry.enabled()
-                        textErrorMessage.text = it.message ?: "-"
-                    }
+                    binding.layoutError.handleResponseError(it.message ?: "-", onClickRetry)
                 }
                 ResourceState.LOADING -> {
                     isLoading = it.showLoading ?: false

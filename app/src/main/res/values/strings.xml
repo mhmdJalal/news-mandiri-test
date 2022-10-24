@@ -2,7 +2,7 @@
     <string name="app_name">News App - Mandiri Test</string>
     <string name="text_title_category">Choose News Category</string>
     <string name="text_selected_category">Sources of %s Category</string>
-    <string name="text_coba_lagi">Coba Lagi</string>
+    <string name="text_coba_lagi">Muat Ulang</string>
     <string name="text_articles_source">Showing articles from %1$s(%2$s)</string>
     <string name="hint_search_default">Type to search</string>
     <string name="hint_search_source">Type to search sources</string>

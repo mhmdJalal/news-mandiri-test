@@ -38,12 +38,12 @@ class ArticleViewModel(private val repository: MainRepository): ViewModel() {
     }
 
     fun getArticlesBySource(query: HashMap<String, String?>, refreshData: Boolean = false) {
-        if (pagination.value.current >= pagination.value.totalPage) return
+        if (pagination.value.current > pagination.value.totalPage) return
 
         viewModelScope.launch {
             val defaultQueries = hashMapOf<String, String?>()
             defaultQueries["pageSize"] = "$PAGE_SIZE"
-            defaultQueries["page"] = "${pagination.value.current.inc()}".takeIf { !refreshData } ?: "1"
+            defaultQueries["page"] = "${pagination.value.current}".takeIf { !refreshData } ?: "1"
             defaultQueries.putAll(query)
 
             repository.getArticlesBySource(defaultQueries)

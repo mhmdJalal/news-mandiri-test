@@ -15,10 +15,10 @@ import com.mhmdjalal.newsapp.ui.base.BaseActivity
 import com.mhmdjalal.newsapp.ui.screens.article.NewsArticleActivity
 import com.mhmdjalal.newsapp.ui.screens.source.adapter.SourceAdapter
 import com.mhmdjalal.newsapp.utils.ViewExt.disabled
-import com.mhmdjalal.newsapp.utils.ViewExt.enabled
 import com.mhmdjalal.newsapp.utils.ViewExt.gone
 import com.mhmdjalal.newsapp.utils.ViewExt.stopRefreshing
 import com.mhmdjalal.newsapp.utils.ViewExt.visible
+import com.mhmdjalal.newsapp.utils.handleResponseError
 import com.mhmdjalal.newsapp.utils.hideKeyboard
 import com.mhmdjalal.newsapp.utils.viewBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -39,6 +39,11 @@ class NewsSourceActivity : BaseActivity() {
     private var category: Category? = null
     private var keyword: String? = null
 
+    private val onClickRetry: (View) -> Unit = {
+        it.disabled(alphaParam = 0.5f)
+        sync(sourceRequestState = SourceRequestState.Synchronize)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -58,19 +63,12 @@ class NewsSourceActivity : BaseActivity() {
             sync(sourceRequestState = SourceRequestState.Synchronize)
         }
 
-        with(binding.layoutError) {
-            btnRetry.setOnClickListener {
-                it.disabled(alphaParam = 0.5f)
-                sync(sourceRequestState = SourceRequestState.Synchronize)
-            }
-        }
-
         sync(sourceRequestState = SourceRequestState.Synchronize)
     }
 
     private var isLoading = false
     private fun initRecyclerView() = with(binding) {
-        recyclerCategory.apply {
+        recyclerSource.apply {
             adapter = sourceAdapter
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -78,7 +76,6 @@ class NewsSourceActivity : BaseActivity() {
 
                     val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager?
 
-                    println("STATE: $isLoading, ${linearLayoutManager?.findLastCompletelyVisibleItemPosition()} == ${sourceAdapter.getData().size.dec()}")
                     if (!isLoading) {
                         if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == sourceAdapter.getData().size.dec()) {
                             sync(sourceRequestState = SourceRequestState.Scrolling)
@@ -95,17 +92,19 @@ class NewsSourceActivity : BaseActivity() {
         viewModel.newsSourceList.observe(this) {
             when (it.state) {
                 SUCCESS -> {
-                    binding.recyclerCategory.visible()
-                    binding.layoutError.root.gone()
+                    if (it.data?.allSources.isNullOrEmpty()) {
+                        binding.recyclerSource.gone()
+                        binding.layoutError.handleResponseError("No data.", onClickRetry)
+                    } else {
+                        binding.recyclerSource.visible()
+                        binding.layoutError.root.gone()
+                    }
+
                     sourceAdapter.setData(it.data?.paginateSources ?: emptyList())
                 }
                 ERROR -> {
-                    binding.recyclerCategory.gone()
-                    with(binding.layoutError) {
-                        root.visible()
-                        btnRetry.enabled()
-                        textErrorMessage.text = it.message ?: "-"
-                    }
+                    binding.recyclerSource.gone()
+                    binding.layoutError.handleResponseError(it.message ?: "-", onClickRetry)
                 }
                 LOADING -> {
                     isLoading = it.showLoading ?: false
@@ -113,7 +112,7 @@ class NewsSourceActivity : BaseActivity() {
                     if (isLoading) {
                         if (sourceAdapter.getData().isNotEmpty()) {
                             sourceAdapter.addLoadingView()
-                            binding.recyclerCategory.smoothScrollToPosition(sourceAdapter.itemCount)
+                            binding.recyclerSource.smoothScrollToPosition(sourceAdapter.itemCount)
                         } else {
                             binding.progressCircular.visible()
                         }
