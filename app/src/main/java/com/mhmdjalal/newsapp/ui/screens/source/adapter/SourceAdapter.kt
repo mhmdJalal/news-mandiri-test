@@ -14,7 +14,8 @@ import com.mhmdjalal.newsapp.utils.viewBinding
 /**
  * @author Created by Muhamad Jalaludin on 21/10/2022
  */
-class SourceAdapter(private val listener: (Source) -> Unit) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class SourceAdapter(private val listener: (Source) -> Unit) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var data: List<Source?> = emptyList()
 
@@ -45,9 +46,13 @@ class SourceAdapter(private val listener: (Source) -> Unit) : RecyclerView.Adapt
 
     override fun getItemCount() = data.size
 
-    inner class LoadingViewHolder(binding: ItemLoadingBinding): RecyclerView.ViewHolder(binding.root)
+    inner class LoadingViewHolder(binding: ItemLoadingBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
-    inner class SourceViewHolder(private val binding: ItemSourceBinding, private val listener: (Source) -> Unit) : RecyclerView.ViewHolder(binding.root) {
+    inner class SourceViewHolder(
+        private val binding: ItemSourceBinding,
+        private val listener: (Source) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Source) = with(binding) {
             textSourceTitle.text = item.name

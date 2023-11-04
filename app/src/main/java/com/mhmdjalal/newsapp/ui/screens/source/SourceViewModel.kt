@@ -8,7 +8,7 @@ import com.mhmdjalal.newsapp.data.models.Pagination
 import com.mhmdjalal.newsapp.data.models.Source
 import com.mhmdjalal.newsapp.data.models.SourcesPaginate
 import com.mhmdjalal.newsapp.network.Resource
-import com.mhmdjalal.newsapp.network.ResourceState.*
+import com.mhmdjalal.newsapp.network.ResourceState.SUCCESS
 import com.mhmdjalal.newsapp.repositories.NewsSourceRepository
 import com.mhmdjalal.newsapp.repositories.NewsSourceRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ enum class SourceRequestState {
 /**
  * @author Created by Muhamad Jalaludin on 21/10/2022
  */
-class SourceViewModel(private val repository: NewsSourceRepository): ViewModel() {
+class SourceViewModel(private val repository: NewsSourceRepository) : ViewModel() {
 
     private var _newsSourceList = MutableLiveData<Resource<SourcesPaginate>>()
     val newsSourceList: LiveData<Resource<SourcesPaginate>>
@@ -37,7 +37,7 @@ class SourceViewModel(private val repository: NewsSourceRepository): ViewModel()
     private val searchSources = _searchSources.asStateFlow()
 
     private var _pagination = MutableStateFlow(Pagination())
-    private val pagination =_pagination.asStateFlow()
+    private val pagination = _pagination.asStateFlow()
 
     private fun updatePagination() {
         val paginationTemp = Pagination(
@@ -59,18 +59,24 @@ class SourceViewModel(private val repository: NewsSourceRepository): ViewModel()
         _pagination.update { paginationTemp }
     }
 
-    fun getSourcesByCategory(query: HashMap<String, String?>, sourceRequestState: SourceRequestState) {
+    fun getSourcesByCategory(
+        query: HashMap<String, String>,
+        sourceRequestState: SourceRequestState
+    ) {
         // returning request if state is scrolling and current page greater than total page
-        if (sourceRequestState == SourceRequestState.Scrolling && pagination.value.current > pagination.value.totalPage) return
+        if (sourceRequestState == SourceRequestState.Scrolling &&
+            pagination.value.current > pagination.value.totalPage) return
 
         viewModelScope.launch {
-            val defaultQueries = hashMapOf<String, String?>()
+            val defaultQueries = hashMapOf<String, String>()
             defaultQueries["pageSize"] = "${NewsSourceRepositoryImpl.PAGE_SIZE}"
-            defaultQueries["page"] = pagination.value.current.toString().takeIf { sourceRequestState == SourceRequestState.Scrolling } ?: "1"
+            defaultQueries["page"] = pagination.value.current.toString()
+                .takeIf { sourceRequestState == SourceRequestState.Scrolling } ?: "1"
             defaultQueries.putAll(query)
 
             val currentSources = (searchSources.takeIf {
-                sourceRequestState == SourceRequestState.Searching && searchSources.value.isNotEmpty()
+                sourceRequestState == SourceRequestState.Searching &&
+                        searchSources.value.isNotEmpty()
             } ?: originalSources).value
             repository.fetchSources(currentSources, defaultQueries)
                 .collect { result ->

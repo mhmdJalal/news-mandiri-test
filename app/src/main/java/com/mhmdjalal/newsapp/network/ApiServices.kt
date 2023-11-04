@@ -1,21 +1,26 @@
 package com.mhmdjalal.newsapp.network
 
-import com.mhmdjalal.newsapp.data.models.responses.ArticleResponse
-import com.mhmdjalal.newsapp.data.models.responses.SourceResponse
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.QueryMap
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 
-interface ApiServices {
+class ApiServices(private val client: HttpClient) {
 
-    @GET("/v2/sources")
-    suspend fun getSources(
-        @QueryMap query: Map<String, String?>
-    ): Response<SourceResponse>
+    suspend fun getSources(request: Map<String, String>) =
+        client.get("/v2/sources") {
+            url {
+                request.map {
+                    parameters.append(it.key, it.value)
+                }
+            }
+        }
 
-    @GET("/v2/everything")
-    suspend fun getArticles(
-        @QueryMap query: Map<String, String?>
-    ): Response<ArticleResponse>
+    suspend fun getArticles(request: Map<String, String>) =
+        client.get("/v2/everything") {
+            url {
+                request.map {
+                    parameters.append(it.key, it.value)
+                }
+            }
+        }
 
 }

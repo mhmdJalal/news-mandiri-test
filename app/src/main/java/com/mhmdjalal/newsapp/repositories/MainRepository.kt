@@ -10,5 +10,5 @@ import kotlinx.coroutines.flow.Flow
  */
 interface MainRepository {
     suspend fun getCategories(response: (List<Category>) -> Unit)
-    suspend fun getArticlesBySource(query: HashMap<String, String?>): Flow<Resource<ArticleResponse>>
+    suspend fun getArticlesBySource(query: HashMap<String, String>): Flow<Resource<ArticleResponse>>
 }

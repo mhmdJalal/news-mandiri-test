@@ -3,11 +3,16 @@ package com.mhmdjalal.newsapp.ui.screens.article
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
-import android.webkit.*
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.mhmdjalal.newsapp.data.models.Article
 import com.mhmdjalal.newsapp.databinding.ActivityDetailNewsArticleBinding
+import com.mhmdjalal.newsapp.utils.Constants
 import com.mhmdjalal.newsapp.utils.viewBinding
 
 class DetailNewsArticleActivity : AppCompatActivity() {
@@ -45,13 +50,14 @@ class DetailNewsArticleActivity : AppCompatActivity() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
             super.onProgressChanged(view, newProgress)
             binding.progressHorizontal.progress = newProgress
-            if (newProgress == 100) {
+            if (newProgress == Constants.PROGRESS_COMPLETE) {
                 binding.progressHorizontal.isVisible = false
             }
         }
     }
 
     inner class WebClient: WebViewClient() {
+        @Deprecated("Deprecated in Java")
         override fun onReceivedError(view: WebView, errorCode: Int, description: String, failingUrl: String) {
             binding.webView.isVisible = false
         }

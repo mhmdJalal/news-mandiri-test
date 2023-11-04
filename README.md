@@ -22,9 +22,8 @@ A mobile native application to show news using API from [newsapi.org](https://ne
 - Architecture
    - MVVM Architecture
    - Repository Pattern
-- [Retrofit2](https://github.com/square/retrofit): Construct the REST APIs.
-- [OkHttp3](https://square.github.io/okhttp/): Implementing interceptor and logging.
-- [Moshi](https://github.com/square/moshi/): A modern JSON library for Kotlin and Java.
+- [Ktor](https://ktor.io): Handle everything related to the network. e.g. Construct the REST APIs, interceptor, logging, etc.
+- [Detekt](https://detekt.dev): Static code analyzer for better clean code.
 - [Glide](https://github.com/bumptech/glide): Loading images from network.
 - [Splitties](https://github.com/LouisCAD/Splitties): Intended to reduce the amount of code you have to write, freeing code reading and writing time.
 - [prettytime](https://github.com/ocpsoft/prettytime): Social Style Date and Time Formatting.

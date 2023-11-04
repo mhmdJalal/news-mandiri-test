@@ -2,15 +2,11 @@ package com.mhmdjalal.newsapp.data.models.responses
 
 
 import com.mhmdjalal.newsapp.data.models.Source
-import com.squareup.moshi.Json
 
+@kotlinx.serialization.Serializable
 data class SourceResponse(
-    @Json(name = "sources")
-    val sources: List<Source>?,
-    @Json(name = "status")
-    val status: String?,
-    @Json(name = "code")
-    val code: String?,
-    @Json(name = "message")
-    val message: String?
+    val sources: List<Source>? = null,
+    val status: String? = null,
+    val code: String? = null,
+    val message: String? = null
 )

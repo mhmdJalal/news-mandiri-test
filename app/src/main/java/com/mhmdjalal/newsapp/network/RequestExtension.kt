@@ -1,11 +1,14 @@
 package com.mhmdjalal.newsapp.network
 
+import com.mhmdjalal.newsapp.utils.Constants
 import com.mhmdjalal.newsapp.utils.ErrorUtils
-import com.squareup.moshi.JsonDataException
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.body
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.SerializationException
 import org.json.JSONObject
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 enum class ResourceState {
@@ -14,7 +17,12 @@ enum class ResourceState {
     LOADING
 }
 
-data class Resource<out T>(val state: ResourceState, val data: T?, val message: String?, val showLoading: Boolean?) {
+data class Resource<out T>(
+    val state: ResourceState,
+    val data: T?,
+    val message: String?,
+    val showLoading: Boolean?
+) {
 
     companion object {
 
@@ -34,10 +42,12 @@ data class Resource<out T>(val state: ResourceState, val data: T?, val message: 
 
 }
 
-suspend fun <T> request(response: suspend () -> Response<T>): Flow<Resource<T>> = flow {
+suspend inline fun <reified T> request(
+    crossinline response: suspend () -> HttpResponse
+): Flow<Resource<T>> = flow {
     try {
         emit(Resource.loading(showLoading = true))
-        handlingResponse(response)
+        handlingResponse<T>(response)
             .collect { emit(it) }
     } catch (throwable: Throwable) {
         throwable.printStackTrace()
@@ -48,16 +58,19 @@ suspend fun <T> request(response: suspend () -> Response<T>): Flow<Resource<T>> 
     }
 }
 
-suspend fun <T> handlingResponse(response: suspend () -> Response<T>): Flow<Resource<T>> = flow {
+suspend inline fun <reified T> handlingResponse(
+    crossinline response: suspend () -> HttpResponse
+): Flow<Resource<T>> = flow {
     var messageError: String? = null
     val result = response()
-    if (result.isSuccessful) {
-        result.body()?.let { body ->
+    if (result.status.value in Constants.SUCCESS_CODE) {
+        // handle success response
+        result.body<T>()?.let { body ->
             emit(Resource.success(body))
         }
     } else {
 
-        val errBody = result.errorBody()?.charStream()?.readText() ?: ""
+        val errBody = result.bodyAsText()
         try {
             val resError = JSONObject(errBody)
             if (resError.has("message")) {
@@ -74,7 +87,7 @@ suspend fun <T> handlingResponse(response: suspend () -> Response<T>): Flow<Reso
             messageError = e.message
         } catch (e: NoInternetException) {
             messageError = e.message
-        } catch (e: JsonDataException) {
+        } catch (e: SerializationException) {
             e.printStackTrace()
             messageError = "Terjadi kesalahan saat menguraikan data"
         } catch (throwable: Throwable) {

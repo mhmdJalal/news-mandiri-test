@@ -52,8 +52,7 @@ object Deps {
 
     val coroutineCore by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinCoroutines}" }
     val coroutineAndroid by lazy { "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.kotlinCoroutines}" }
-    val ktorAndroid by lazy { "io.ktor:ktor-client-android:${Versions.ktorAndroid}" }
-    
+
     val playServicesMaps by lazy { "com.google.android.gms:play-services-maps:${Versions.playServicesMaps}" }
     val playServicesLocation by lazy { "com.google.android.gms:play-services-location:${Versions.playServicesLocation}" }
     val playServicesAuth by lazy { "com.google.android.gms:play-services-auth:${Versions.playServicesAuth}" }
@@ -101,6 +100,16 @@ object Deps {
         val moshi by lazy { "com.squareup.moshi:moshi-kotlin:${Versions.moshi}" }
     }
 
+    object Ktor {
+        val core by lazy { "io.ktor:ktor-client-core:${Versions.ktor}" }
+        val android by lazy { "io.ktor:ktor-client-android:${Versions.ktor}" }
+        val serialization by lazy { "io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}" }
+        val logging by lazy { "io.ktor:ktor-client-logging:${Versions.ktor}" }
+        val contentNegotiation by lazy { "io.ktor:ktor-client-content-negotiation:${Versions.ktor}" }
+        val resources by lazy { "io.ktor:ktor-client-resources:${Versions.ktor}" }
+        val cio by lazy { "io.ktor:ktor-client-cio:${Versions.ktor}" }
+    }
+
     object Firebase {
         val firebase by lazy { "com.google.firebase:firebase-bom:${Versions.firebaseBOM}" }
         val dynamicLinks by lazy { "com.google.firebase:firebase-dynamic-links" }
@@ -134,7 +143,7 @@ object AppDetail {
     val appName by lazy { "News App - Mandiri Test" }
     val versionCode by lazy { 1 }
     val versionName by lazy { "1.0" }
-    val compileSdkVersion by lazy { 32 }
-    val targetSdkVersion by lazy { 32 }
+    val compileSdkVersion by lazy { 33 }
+    val targetSdkVersion by lazy { 33 }
     val minSdkVersion by lazy { 21 }
 }

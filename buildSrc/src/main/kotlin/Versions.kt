@@ -31,7 +31,7 @@ object Versions {
     const val pinTextField = "1.2.6"
     const val numericKeyboard = "1.2.0"
 
-    const val squareupOkhttp = "4.10.0"
+    const val squareupOkhttp = "4.11.0"
     const val squareupRetrofit = "2.9.0"
     const val moshi = "1.14.0"
 
@@ -41,8 +41,8 @@ object Versions {
     const val roomVersion = "2.4.3"
     const val cameraXVersion = "1.2.0-alpha04"
     const val barcodeMLKit = "17.0.2"
-    const val kotlinCoroutines = "1.5.1"
-    const val ktorAndroid = "1.2.5"
+    const val kotlinCoroutines = "1.7.3"
+    const val ktor = "2.0.3"
 
     const val playServicesMaps = "17.0.1"
     const val playServicesLocation = "18.0.0"

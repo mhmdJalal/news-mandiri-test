@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mhmdjalal.newsapp.R
 import com.mhmdjalal.newsapp.data.models.Category
 import com.mhmdjalal.newsapp.databinding.ActivityNewsSourceBinding
-import com.mhmdjalal.newsapp.network.ResourceState.*
+import com.mhmdjalal.newsapp.network.ResourceState
 import com.mhmdjalal.newsapp.ui.base.BaseActivity
 import com.mhmdjalal.newsapp.ui.screens.article.NewsArticleActivity
 import com.mhmdjalal.newsapp.ui.screens.source.adapter.SourceAdapter
@@ -62,6 +62,9 @@ class NewsSourceActivity : BaseActivity() {
         binding.swipeRefreshLayout.setOnRefreshListener {
             sync(sourceRequestState = SourceRequestState.Synchronize)
         }
+        binding.layoutError.btnRetry.setOnClickListener {
+            sync(sourceRequestState = SourceRequestState.Synchronize)
+        }
 
         sync(sourceRequestState = SourceRequestState.Synchronize)
     }
@@ -75,9 +78,12 @@ class NewsSourceActivity : BaseActivity() {
                     super.onScrolled(recyclerView, dx, dy)
 
                     val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager?
+                    val lastVisiblePosition =
+                        linearLayoutManager?.findLastCompletelyVisibleItemPosition() ?: 0
 
                     if (!isLoading) {
-                        if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == sourceAdapter.getData().size.dec()) {
+                        if (linearLayoutManager != null &&
+                            lastVisiblePosition == sourceAdapter.getData().size.dec()) {
                             sync(sourceRequestState = SourceRequestState.Scrolling)
                         }
                     }
@@ -91,7 +97,7 @@ class NewsSourceActivity : BaseActivity() {
 
         viewModel.newsSourceList.observe(this) {
             when (it.state) {
-                SUCCESS -> {
+                ResourceState.SUCCESS -> {
                     if (it.data?.allSources.isNullOrEmpty()) {
                         binding.recyclerSource.gone()
                         binding.layoutError.handleResponseError("No data.", onClickRetry)
@@ -102,11 +108,11 @@ class NewsSourceActivity : BaseActivity() {
 
                     sourceAdapter.setData(it.data?.paginateSources ?: emptyList())
                 }
-                ERROR -> {
+                ResourceState.ERROR -> {
                     binding.recyclerSource.gone()
                     binding.layoutError.handleResponseError(it.message ?: "-", onClickRetry)
                 }
-                LOADING -> {
+                ResourceState.LOADING -> {
                     isLoading = it.showLoading ?: false
 
                     if (isLoading) {
@@ -137,11 +143,11 @@ class NewsSourceActivity : BaseActivity() {
 
         val item = menu.findItem(R.id.action_search)
         item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
                 return true
             }
 
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
                 keyword = null
                 sync(sourceRequestState = SourceRequestState.Synchronize)
                 return true
@@ -175,8 +181,8 @@ class NewsSourceActivity : BaseActivity() {
     private fun sync(sourceRequestState: SourceRequestState) {
         if (sourceRequestState != SourceRequestState.Scrolling) sourceAdapter.clearData()
 
-        val queries = hashMapOf<String, String?>()
-        queries["category"] = category?.categoryKey
+        val queries = hashMapOf<String, String>()
+        category?.categoryKey?.let { queries["category"] = it }
         keyword?.let { queries["q"] = it }
         viewModel.getSourcesByCategory(queries, sourceRequestState)
     }

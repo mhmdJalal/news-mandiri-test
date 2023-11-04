@@ -1,20 +1,20 @@
 package com.mhmdjalal.newsapp.utils
 
-import retrofit2.HttpException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.http.HttpStatusCode
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import javax.net.ssl.HttpsURLConnection
 
 object ErrorUtils {
     fun getThrowableErrMsg(throwable: Throwable): String = when (throwable) {
-        is HttpException ->
-            when (throwable.code()) {
-                HttpsURLConnection.HTTP_UNAUTHORIZED -> "Unable to access data"
-                HttpsURLConnection.HTTP_NOT_FOUND -> "Data not found"
-                HttpsURLConnection.HTTP_INTERNAL_ERROR -> "There was a problem with the server"
-                HttpsURLConnection.HTTP_BAD_REQUEST -> "Invalid data"
-                HttpsURLConnection.HTTP_FORBIDDEN -> "Session has ended"
+        is ClientRequestException ->
+            when (throwable.response.status) {
+                HttpStatusCode.Unauthorized -> "Unable to access data"
+                HttpStatusCode.NotFound -> "Data not found"
+                HttpStatusCode.InternalServerError -> "There was a problem with the server"
+                HttpStatusCode.BadRequest -> "Invalid data"
+                HttpStatusCode.Forbidden -> "Session has ended"
                 else -> "Oops, An error occurred, please try again in a moment"
             }
         is UnknownHostException -> "Unknown Error"

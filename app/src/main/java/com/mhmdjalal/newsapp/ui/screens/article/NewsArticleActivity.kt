@@ -13,6 +13,7 @@ import com.mhmdjalal.newsapp.databinding.ActivityNewsArticleBinding
 import com.mhmdjalal.newsapp.network.ResourceState
 import com.mhmdjalal.newsapp.ui.base.BaseActivity
 import com.mhmdjalal.newsapp.ui.screens.article.adapter.ArticleAdapter
+import com.mhmdjalal.newsapp.utils.Constants
 import com.mhmdjalal.newsapp.utils.ViewExt.disabled
 import com.mhmdjalal.newsapp.utils.ViewExt.gone
 import com.mhmdjalal.newsapp.utils.ViewExt.stopRefreshing
@@ -40,8 +41,8 @@ class NewsArticleActivity : BaseActivity() {
     private var keyword: String? = null
 
     private val onClickRetry: (View) -> Unit = {
-        it.disabled(0.5f)
-        sync()
+        it.disabled(Constants.HALF_OPACITY)
+        sync(refreshData = true)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,9 +77,12 @@ class NewsArticleActivity : BaseActivity() {
                     super.onScrolled(recyclerView, dx, dy)
 
                     val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager?
+                    val lastVisiblePosition =
+                        linearLayoutManager?.findLastCompletelyVisibleItemPosition() ?: 0
 
                     if (!isLoading) {
-                        if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == articleAdapter.getData().size - 1) {
+                        if (linearLayoutManager != null &&
+                             lastVisiblePosition == articleAdapter.getData().size - 1) {
                             sync()
                         }
                     }
@@ -97,11 +101,11 @@ class NewsArticleActivity : BaseActivity() {
 
         val item = menu.findItem(R.id.action_search)
         item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
+            override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
                 return true
             }
 
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
+            override fun onMenuItemActionCollapse(p0: MenuItem): Boolean {
                 keyword = null
                 sync(refreshData = true)
                 return true
@@ -174,9 +178,10 @@ class NewsArticleActivity : BaseActivity() {
 
     private fun sync(refreshData: Boolean = false) {
         if (refreshData) articleAdapter.clearData()
-        val queries = hashMapOf<String, String?>()
+        val queries = hashMapOf<String, String>()
         source?.id?.let { queries["sources"] = it }
         keyword?.let { queries["q"] = it }
+        println("execute 1")
         viewModel.getArticlesBySource(queries, refreshData)
     }
 

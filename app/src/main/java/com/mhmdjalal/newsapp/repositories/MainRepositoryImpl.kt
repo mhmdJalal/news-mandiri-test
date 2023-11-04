@@ -30,8 +30,8 @@ class MainRepositoryImpl(private val apiServices: ApiServices): MainRepository {
     /**
      * @param query: q, sources, page, pageSize
      */
-    override suspend fun getArticlesBySource(query: HashMap<String, String?>): Flow<Resource<ArticleResponse>> = flow {
-        request { apiServices.getArticles(query) }
+    override suspend fun getArticlesBySource(query: HashMap<String, String>): Flow<Resource<ArticleResponse>> = flow {
+        request<ArticleResponse> { apiServices.getArticles(query) }
             .collect { result ->
                 emit(result)
             }

@@ -2,14 +2,15 @@ package com.mhmdjalal.newsapp.ui.screens.category.adapter
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.mhmdjalal.newsapp.utils.viewBinding
 import com.mhmdjalal.newsapp.data.models.Category
 import com.mhmdjalal.newsapp.databinding.ItemCategoryBinding
+import com.mhmdjalal.newsapp.utils.viewBinding
 
 /**
  * @author Created by Muhamad Jalaludin on 21/10/2022
  */
-class CategoryAdapter(private val listener: (Category) -> Unit) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
+class CategoryAdapter(private val listener: (Category) -> Unit) :
+    RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     private var data: List<Category> = emptyList()
 
@@ -24,7 +25,10 @@ class CategoryAdapter(private val listener: (Category) -> Unit) : RecyclerView.A
         holder.bind(data[position])
     }
 
-    inner class CategoryViewHolder(private val binding: ItemCategoryBinding, private val listener: (Category) -> Unit) : RecyclerView.ViewHolder(binding.root) {
+    inner class CategoryViewHolder(
+        private val binding: ItemCategoryBinding,
+        private val listener: (Category) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Category) = with(binding) {
             textCategoryName.text = item.name

@@ -7,6 +7,8 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
+    id("io.gitlab.arturbosch.detekt") version("1.23.3")
+    kotlin("plugin.serialization") version "1.7.10"
 }
 
 val apikeyPropertiesFile by lazy { rootProject.file("apikey.properties") }
@@ -24,7 +26,7 @@ android {
         versionCode = AppDetail.versionCode
         versionName = AppDetail.versionName
 
-        buildConfigField("String", "BASE_URL", "\"https://newsapi.org\"")
+        buildConfigField("String", "BASE_URL", "\"newsapi.org\"")
 
         buildConfigField("String", "NEWS_API_KEY", "\"${apikeyProperties.getProperty("NEWS_API_KEY")}\"")
 
@@ -71,13 +73,13 @@ dependencies {
         isTransitive = true
     }
 
-    // SquareUp
-    implementation(platform(Deps.SquareUp.okhttpBOM))
-    implementation(Deps.SquareUp.okhttp3)
-    implementation(Deps.SquareUp.okhttp3Logging)
-    implementation(Deps.SquareUp.retrofit)
-    implementation(Deps.SquareUp.retrofitMoshi)
-    implementation(Deps.SquareUp.moshi)
+    // KTOR
+    implementation(Deps.Ktor.core)
+    implementation(Deps.Ktor.cio)
+    implementation(Deps.Ktor.android)
+    implementation(Deps.Ktor.serialization)
+    implementation(Deps.Ktor.logging)
+    implementation(Deps.Ktor.contentNegotiation)
 
     // KOIN
     implementation(Deps.Koin.core)

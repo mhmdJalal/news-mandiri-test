@@ -6,7 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.viewbinding.ViewBinding
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -15,17 +18,18 @@ import kotlin.reflect.KProperty
  * single-liner initialization for use view binding in activity
  */
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
-        crossinline bindingInflater: (LayoutInflater) -> T) =
-        lazy(LazyThreadSafetyMode.NONE) {
-            bindingInflater.invoke(layoutInflater)
-        }
+    crossinline bindingInflater: (LayoutInflater) -> T
+) =
+    lazy(LazyThreadSafetyMode.NONE) {
+        bindingInflater.invoke(layoutInflater)
+    }
 
 /**
  * clear binding value when the views are destroyed.
  */
 class FragmentViewBindingDelegate<T : ViewBinding>(
-        val fragment: Fragment,
-        val viewBindingFactory: (View) -> T
+    val fragment: Fragment,
+    val viewBindingFactory: (View) -> T
 ) : ReadOnlyProperty<Fragment, T> {
     private var binding: T? = null
 
@@ -42,11 +46,15 @@ class FragmentViewBindingDelegate<T : ViewBinding>(
             }
 
             override fun onCreate(owner: LifecycleOwner) {
-                fragment.viewLifecycleOwnerLiveData.observeForever(viewLifecycleOwnerLiveDataObserver)
+                fragment.viewLifecycleOwnerLiveData.observeForever(
+                    viewLifecycleOwnerLiveDataObserver
+                )
             }
 
             override fun onDestroy(owner: LifecycleOwner) {
-                fragment.viewLifecycleOwnerLiveData.removeObserver(viewLifecycleOwnerLiveDataObserver)
+                fragment.viewLifecycleOwnerLiveData.removeObserver(
+                    viewLifecycleOwnerLiveDataObserver
+                )
             }
         })
     }
@@ -59,7 +67,10 @@ class FragmentViewBindingDelegate<T : ViewBinding>(
             }
             val lifecycle = thisRef.viewLifecycleOwner.lifecycle
             if (!lifecycle.currentState.isAtLeast(Lifecycle.State.INITIALIZED)) {
-                throw IllegalStateException("Should not attempt to get bindings when Fragment views are destroyed.")
+                error(
+                    IllegalStateException(
+                        "Should not attempt to get bindings when Fragment views are destroyed.")
+                )
             }
         } catch (e: IllegalStateException) {
             e.printStackTrace()
@@ -73,16 +84,17 @@ class FragmentViewBindingDelegate<T : ViewBinding>(
  * single-liner initialization for use view binding in fragment
  */
 fun <T : ViewBinding> Fragment.viewBinding(viewBindingFactory: (View) -> T) =
-        FragmentViewBindingDelegate(this, viewBindingFactory)
+    FragmentViewBindingDelegate(this, viewBindingFactory)
 
 /**
  * single-liner initialization for use view binding in adapter
  */
-inline fun <T : ViewBinding> ViewGroup.viewBinding(viewBindingFactory: (LayoutInflater, ViewGroup, Boolean) -> T) =
-        viewBindingFactory.invoke(LayoutInflater.from(this.context), this, false)
+inline fun <T : ViewBinding> ViewGroup.viewBinding(
+    viewBindingFactory: (LayoutInflater, ViewGroup, Boolean) -> T
+) = viewBindingFactory.invoke(LayoutInflater.from(this.context), this, false)
 
 /**
  * single-liner initialization for use view binding in dialog
  */
 inline fun <T : ViewBinding> Context.viewBindingDialog(viewBindingFactory: (LayoutInflater) -> T) =
-        viewBindingFactory.invoke(LayoutInflater.from(this))
+    viewBindingFactory.invoke(LayoutInflater.from(this))

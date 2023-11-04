@@ -1,73 +1,79 @@
 package com.mhmdjalal.newsapp.di
 
+import android.util.Log
 import com.mhmdjalal.newsapp.BuildConfig
-import com.mhmdjalal.newsapp.network.NoConnectionInterceptor
 import com.mhmdjalal.newsapp.network.ApiServices
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import org.koin.android.ext.koin.androidContext
+import com.mhmdjalal.newsapp.utils.Constants
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.observer.ResponseObserver
+import io.ktor.client.request.headers
+import io.ktor.http.append
+import io.ktor.http.HttpHeaders
+import io.ktor.http.ContentType
+import io.ktor.http.URLProtocol
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import java.util.concurrent.TimeUnit
-
 /**
  * @author Created by Muhamad Jalaludin on 20/10/2022
  */
 val networkModules = module {
-    val baseUrl = BuildConfig.BASE_URL
+    singleOf(::ktorHttpClient)
+    singleOf(::ApiServices)
+}
 
-    single { provideHttpLoggingInterceptor() }
-    single { NoConnectionInterceptor(androidContext()) }
-    single { provideHttpClient(get(), get()) }
+private val ktorHttpClient = HttpClient(Android) {
+    // only accept success response and throw exceptions if failed
+    expectSuccess = true
 
-    single {
-        createService<ApiServices>(
-            get(),
-            baseUrl
-        )
+    // setup default request
+    defaultRequest {
+        host = BuildConfig.BASE_URL
+        headers {
+            append(HttpHeaders.ContentType, ContentType.Application.Json)
+            append(HttpHeaders.Accept, ContentType.Application.Json)
+            append("X-Api-Key", BuildConfig.NEWS_API_KEY)
+        }
+        url {
+            protocol = URLProtocol.HTTPS
+        }
     }
-}
+    engine {
+        // setup connect time out and socket time out
+        connectTimeout = Constants.NETWORK_TIMEOUT
+        socketTimeout = Constants.NETWORK_TIMEOUT
+    }
 
-fun provideHttpClient(loggingInterceptor: HttpLoggingInterceptor, connectionInterceptor: NoConnectionInterceptor): OkHttpClient {
-    val client = OkHttpClient.Builder()
+    // json serialization
+    install(ContentNegotiation) {
+        json(Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        })
+    }
 
-    client.connectTimeout(60, TimeUnit.SECONDS)
-    client.writeTimeout(60, TimeUnit.SECONDS)
-    client.readTimeout(60, TimeUnit.SECONDS)
-    if (BuildConfig.DEBUG) client.addInterceptor(loggingInterceptor)
-    client.addInterceptor(connectionInterceptor)
+    // logging
+    install(Logging) {
+        logger = object : Logger {
+            override fun log(message: String) {
+                Log.v("Logger Ktor =>", message)
+            }
 
-    return client.addInterceptor {
-        val original = it.request()
-        val requestBuilder = original.newBuilder()
-        requestBuilder.header("Content-Type", "application/json")
-        requestBuilder.header("Accept", "application/json")
-        requestBuilder.header("X-Api-Key", BuildConfig.NEWS_API_KEY)
-        val request = requestBuilder.method(original.method, original.body).build()
-        return@addInterceptor it.proceed(request)
-    }.build()
-}
+        }
+        level = LogLevel.ALL
+    }
 
-fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
-    val logging = HttpLoggingInterceptor()
-    logging.level = HttpLoggingInterceptor.Level.BODY
-    return logging
-}
-
-/**
- * create service use retrofit
- */
-inline fun <reified T> createService(okHttpClient: OkHttpClient, baseUrl: String): T {
-    val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-    val retrofit = Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .client(okHttpClient)
-        .build()
-    return retrofit.create(T::class.java)
+    install(ResponseObserver) {
+        onResponse { response ->
+            Log.d("HTTP status:", "${response.status.value}")
+        }
+    }
 }

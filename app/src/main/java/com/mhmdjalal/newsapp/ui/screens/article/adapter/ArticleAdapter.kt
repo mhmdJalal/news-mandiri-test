@@ -18,7 +18,8 @@ import com.mhmdjalal.newsapp.utils.viewBinding
 /**
  * @author Created by Muhamad Jalaludin on 21/10/2022
  */
-class ArticleAdapter(private val listener: (Article) -> Unit) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ArticleAdapter(private val listener: (Article) -> Unit) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var data = listOf<Article?>()
 
@@ -49,9 +50,13 @@ class ArticleAdapter(private val listener: (Article) -> Unit) : RecyclerView.Ada
 
     override fun getItemCount() = data.size
 
-    inner class LoadingViewHolder(binding: ItemLoadingBinding): RecyclerView.ViewHolder(binding.root)
+    inner class LoadingViewHolder(binding: ItemLoadingBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
-    inner class ArticleViewHolder(private val binding: ItemArticleBinding, private val listener: (Article) -> Unit) : RecyclerView.ViewHolder(binding.root) {
+    inner class ArticleViewHolder(
+        private val binding: ItemArticleBinding,
+        private val listener: (Article) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Article) = with(binding) {
             Glide.with(itemView.context)
@@ -61,7 +66,8 @@ class ArticleAdapter(private val listener: (Article) -> Unit) : RecyclerView.Ada
                 .into(imageArticle)
             textArticleTitle.text = item.title
             textArticleDate.text = DateUtils.convertTime(item.publishedAt)
-            textArticleDesc.text = HtmlCompat.fromHtml(item.content ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT)
+            textArticleDesc.text =
+                HtmlCompat.fromHtml(item.content ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT)
             itemView.setOnClickListener {
                 listener.invoke(item)
             }
